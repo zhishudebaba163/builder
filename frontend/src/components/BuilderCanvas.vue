@@ -1,5 +1,8 @@
 <template>
 	<div ref="canvasContainer" @click="handleClick">
+		<div
+			v-show="store.settingPage"
+			class="absolute bottom-0 left-0 right-0 top-0 z-40 grid place-items-center bg-white opacity-50 dark:bg-black"></div>
 		<div class="overlay absolute" id="overlay" ref="overlay" />
 		<BlockSnapGuides></BlockSnapGuides>
 		<div
@@ -69,12 +72,15 @@ import Block from "@/utils/block";
 import getBlockTemplate from "@/utils/blockTemplate";
 import { addPxToNumber, getBlockCopy, getNumberFromPx } from "@/utils/helpers";
 import {
+	UseManualRefHistoryReturn,
 	UseRefHistoryReturn,
 	clamp,
-	useDebouncedRefHistory,
+	useDebounceFn,
 	useDropZone,
 	useElementBounding,
 	useEventListener,
+	useManualRefHistory,
+	watchIgnorable,
 } from "@vueuse/core";
 import { FeatherIcon } from "frappe-ui";
 import { Ref, computed, nextTick, onMounted, provide, reactive, ref, watch } from "vue";
@@ -138,7 +144,7 @@ const canvasProps = reactive({
 	],
 });
 
-const canvasHistory = ref(null) as Ref<UseRefHistoryReturn<{}, {}>> | Ref<null>;
+const canvasHistory = ref(null) as Ref<UseManualRefHistoryReturn<{}, {}>> | Ref<null>;
 
 provide("canvasProps", canvasProps);
 
@@ -149,10 +155,8 @@ onMounted(() => {
 });
 
 function setupHistory() {
-	canvasHistory.value = useDebouncedRefHistory(block, {
+	canvasHistory.value = useManualRefHistory(block, {
 		capacity: 200,
-		deep: true,
-		debounce: 200,
 		clone: (obj) => {
 			return getBlockCopy(obj, true);
 		},
@@ -224,7 +228,7 @@ function setEvents() {
 		if (store.mode === "select") {
 			return;
 		} else {
-			canvasHistory.value?.pause();
+			pauseHistory();
 			ev.stopPropagation();
 			let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement;
 			let block = getFirstBlock();
@@ -291,7 +295,7 @@ function setEvents() {
 						store.mode = "select";
 					}, 50);
 					if (store.mode === "text") {
-						canvasHistory.value?.resume(true);
+						resumeHistory(true);
 						return;
 					}
 					if (getNumberFromPx(childBlock.getStyle("width")) < 100) {
@@ -300,7 +304,7 @@ function setEvents() {
 					if (getNumberFromPx(childBlock.getStyle("height")) < 100) {
 						childBlock.setBaseStyle("height", "200px");
 					}
-					canvasHistory.value?.resume(true);
+					resumeHistory(true);
 				},
 				{ once: true }
 			);
@@ -459,10 +463,7 @@ const getFirstBlock = () => {
 
 const setRootBlock = (newBlock: Block, resetCanvas = false) => {
 	block.value = newBlock;
-	if (canvasHistory.value) {
-		canvasHistory.value.dispose();
-		setupHistory();
-	}
+	setupHistory();
 	if (resetCanvas) {
 		nextTick(() => {
 			setScaleAndTranslate();
@@ -541,6 +542,44 @@ const findBlock = (blockId: string, blocks?: Block[]): Block | null => {
 	return null;
 };
 
+const historyPaused = ref(false);
+const pauseHistory = () => {
+	historyPaused.value = true;
+};
+const resumeHistory = (commit: Boolean = false) => {
+	historyPaused.value = false;
+	if (commit) {
+		canvasHistory.value?.commit();
+	}
+};
+
+const debouncedCommit = useDebounceFn(() => {
+	canvasHistory.value?.commit();
+}, 500);
+
+const { ignoreUpdates } = watchIgnorable(
+	block,
+	(newValue, oldValue) => {
+		if (historyPaused.value) {
+			return;
+		}
+		debouncedCommit();
+	},
+	{ deep: true }
+);
+
+const undo = () => {
+	ignoreUpdates(() => {
+		canvasHistory.value?.undo();
+	});
+};
+
+const redo = () => {
+	ignoreUpdates(() => {
+		canvasHistory.value?.redo();
+	});
+};
+
 defineExpose({
 	setScaleAndTranslate,
 	resetZoom,
@@ -561,5 +600,9 @@ defineExpose({
 	selectedBlockIds,
 	findParentBlock,
 	findBlock,
+	pauseHistory,
+	resumeHistory,
+	undo,
+	redo,
 });
 </script>

@@ -177,10 +177,10 @@ watch(
 	(editable) => {
 		editor.value?.setEditable(editable);
 		if (editable) {
-			store.activeCanvas?.history.pause();
+			store.activeCanvas?.pauseHistory();
 			editor.value?.commands.focus("all");
 		} else {
-			store.activeCanvas?.history.resume();
+			store.activeCanvas?.resumeHistory();
 		}
 	},
 	{ immediate: true }

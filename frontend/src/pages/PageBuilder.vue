@@ -82,9 +82,6 @@ window.blockController = blockController;
 const pageCanvas = ref<InstanceType<typeof BuilderCanvas> | null>(null);
 const componentCanvas = ref<InstanceType<typeof BuilderCanvas> | null>(null);
 
-const keys = useMagicKeys();
-const CtrlBacktick = keys["Ctrl+`"];
-
 provide("pageCanvas", pageCanvas);
 provide("componentCanvas", componentCanvas);
 
@@ -244,12 +241,14 @@ useEventListener(document, "paste", async (e) => {
 useEventListener(document, "keydown", (e) => {
 	if (isTargetEditable(e)) return;
 	if (e.key === "z" && isCtrlOrCmd(e) && !e.shiftKey && store.activeCanvas?.history.canUndo) {
-		store.activeCanvas?.history.undo();
+		store.activeCanvas?.undo();
+		updateSelectedBlocks();
 		e.preventDefault();
 		return;
 	}
 	if (e.key === "z" && e.shiftKey && isCtrlOrCmd(e) && store.activeCanvas?.history.canRedo) {
-		store.activeCanvas?.history.redo();
+		store.activeCanvas?.redo();
+		updateSelectedBlocks();
 		e.preventDefault();
 		return;
 	}
@@ -504,6 +503,7 @@ onActivated(async () => {
 });
 
 const setPage = (pageName: string, resetCanvas = true) => {
+	store.settingPage = true;
 	webPages.fetchOne.submit(pageName).then((data: BuilderPage[]) => {
 		store.setPage(data[0], resetCanvas);
 	});

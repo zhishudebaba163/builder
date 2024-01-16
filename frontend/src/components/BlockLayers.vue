@@ -15,10 +15,10 @@
 							@contextmenu.prevent.stop="onContextMenu"
 							class="cursor-pointer rounded border border-transparent bg-white pl-2 pr-[2px] text-sm text-gray-700 dark:bg-zinc-900 dark:text-gray-500"
 							@click.stop="
-								store.activeCanvas?.history.pause();
+								store.activeCanvas?.pauseHistory();
 								element.expanded = true;
 								store.selectBlock(element, $event, false);
-								store.activeCanvas?.history.resume();
+								store.activeCanvas?.resumeHistory();
 							"
 							@mouseover.stop="store.hoveredBlock = element.blockId"
 							@mouseleave.stop="store.hoveredBlock = null">

@@ -52,9 +52,7 @@
 						{ label: 'Published', value: 'published' },
 						{ label: 'Unpublished', value: 'unpublished' },
 					]" />
-				<router-link :to="{ name: 'builder', params: { pageId: 'new' } }">
-					<Button variant="solid" icon-left="plus">New</Button>
-				</router-link>
+				<Button variant="solid" icon-left="plus" @click="() => (showDialog = true)">New</Button>
 			</div>
 		</div>
 		<div class="flex flex-wrap gap-6">
@@ -170,11 +168,26 @@
 				</div>
 			</router-link>
 		</div>
+		<Dialog
+			:options="{
+				title: 'Select Template',
+				size: '6xl',
+			}"
+			v-model="showDialog">
+			<template #body-content>
+				<div
+					class="flex h-12 w-48 cursor-pointer items-center rounded-sm bg-gray-50 p-4 align-middle dark:bg-zinc-900"
+					@click="() => loadPage(null)">
+					Blank
+				</div>
+			</template>
+		</Dialog>
 	</section>
 </template>
 <script setup lang="ts">
 import CrossIcon from "@/components/Icons/Cross.vue";
 import { webPages } from "@/data/webPage";
+import router from "@/router";
 import useStore from "@/store";
 import { BuilderPage } from "@/types/Builder/BuilderPage";
 import { confirm } from "@/utils/helpers";
@@ -188,6 +201,7 @@ const displayType = useStorage('displayType', 'grid');
 const store = useStore();
 const filter = ref("");
 const typeFilter = ref("");
+const showDialog = ref(false);
 
 const pages = computed(() =>
 	(webPages.data || []).filter((page: BuilderPage) => {
@@ -223,6 +237,16 @@ const duplicatePage = async (page: BuilderPage) => {
 	pageCopy.page_name = `${page.page_name}-copy`;
 	pageCopy.page_title = `${page.page_title} Copy`;
 	await webPages.insert.submit(pageCopy);
+};
+
+// <router-link :to="{ name: 'builder', params: { pageId: 'new' } }">
+// </router-link>
+
+const loadPage = (template: string | null) => {
+	if (!template) {
+		router.push({ name: "builder", params: { pageId: "new" } });
+		showDialog.value = false;
+	}
 };
 
 onActivated(() => {

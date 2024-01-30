@@ -77,7 +77,6 @@
 <script setup lang="ts">
 import Block from "@/utils/block";
 import { addPxToNumber } from "@/utils/helpers";
-import { Dialog } from "frappe-ui";
 import { Ref, computed, inject, nextTick, onMounted, ref, watch, watchEffect } from "vue";
 
 import blockController from "@/utils/blockController";
@@ -146,7 +145,10 @@ watchEffect(() => {
 	parentBlock?.getStyle("justifyContent");
 	parentBlock?.getStyle("alignItems");
 	parentBlock?.getStyle("flexDirection");
-	parentBlock?.getStyle("padding");
+	parentBlock?.getStyle("paddingTop");
+	parentBlock?.getStyle("paddingBottom");
+	parentBlock?.getStyle("paddingLeft");
+	parentBlock?.getStyle("paddingRight");
 	parentBlock?.getStyle("margin");
 	store.builderLayout.leftPanelWidth;
 	store.builderLayout.rightPanelWidth;

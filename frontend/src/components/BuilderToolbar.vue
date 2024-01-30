@@ -77,7 +77,7 @@
 </template>
 <script setup lang="ts">
 import { UseDark } from "@vueuse/components";
-import { Dialog, Tooltip } from "frappe-ui";
+import { Tooltip } from "frappe-ui";
 import { ref } from "vue";
 import useStore from "../store";
 

@@ -73,13 +73,26 @@
 			v-model="showDialog">
 			<template #body-content>
 				<div>
-					<div
-						class="flex h-12 w-48 cursor-pointer items-center rounded-sm bg-gray-50 p-4 align-middle dark:bg-zinc-900"
-						@click="() => loadPage(null)">
-						Blank
+					<div class="mb-5 max-w-[250px] flex-grow basis-52">
+						<div
+							@click="() => loadPage(null)"
+							class="group relative mr-2 w-full overflow-hidden rounded-md shadow hover:cursor-pointer dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+							<img
+								width="250"
+								height="140"
+								:src="'/assets/builder/images/fallback.png'"
+								class="w-full overflow-hidden rounded-lg bg-gray-50 object-cover p-2 dark:bg-zinc-900" />
+							<div class="flex items-center justify-between border-t-[1px] px-3 dark:border-zinc-800">
+								<span class="inline-block max-w-[160px] py-2 text-sm text-gray-700 dark:text-zinc-200">
+									<div class="flex items-center gap-1">
+										<p class="truncate">Blank</p>
+									</div>
+								</span>
+							</div>
+						</div>
 					</div>
 					<div class="flex flex-wrap gap-6">
-						<TemplatePagePreview v-for="page in pages" :page="page"></TemplatePagePreview>
+						<TemplatePagePreview v-for="page in top5Pages" :page="page"></TemplatePagePreview>
 					</div>
 				</div>
 			</template>
@@ -104,6 +117,10 @@ const store = useStore();
 const filter = ref("");
 const typeFilter = ref("");
 const showDialog = ref(false);
+
+const top5Pages = computed(() => {
+	return (webPages.data || []).slice(0, 8);
+});
 
 const pages = computed(() =>
 	(webPages.data || []).filter((page: BuilderPage) => {
